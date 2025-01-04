@@ -3,49 +3,110 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Messenger</title>
+  <title>Real-Time Chat</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7fc;
       margin: 0;
       padding: 0;
-      background-color: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
     .container {
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-      background: white;
+      width: 100%;
+      max-width: 800px;
+      background: #fff;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 20px;
     }
     .hidden {
       display: none;
     }
     input, button, textarea {
-      display: block;
-      margin: 10px 0;
-      padding: 10px;
       width: 100%;
+      padding: 12px;
       font-size: 14px;
-    }
-    .user-list, .messages {
-      border: 1px solid #ddd;
-      padding: 10px;
-      margin: 10px 0;
-      max-height: 200px;
-      overflow-y: auto;
-      background: #f4f4f4;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      margin: 8px 0;
     }
     button {
-      cursor: pointer;
       background-color: #007bff;
       color: white;
       border: none;
-      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
     }
     button:hover {
       background-color: #0056b3;
+    }
+    .chat-container {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+    }
+    .chat-message-container {
+      margin-bottom: 12px;
+    }
+    .chat-message-container p {
+      background-color: #e6f7ff;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .sender {
+      background-color: #cce5ff;
+      text-align: left;
+    }
+    .receiver {
+      background-color: #e0f7fa;
+      text-align: right;
+    }
+    #loginSection {
+      text-align: center;
+    }
+    #loginSection input {
+      margin: 8px 0;
+    }
+    #userList p {
+      font-size: 16px;
+      padding: 8px;
+      background-color: #e9f7fd;
+      border-radius: 5px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s ease;
+    }
+    #userList p:hover {
+      background-color: #d0efff;
+    }
+    #userList img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .logout-btn {
+      background-color: #ff4d4d;
+      color: white;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    .logout-btn:hover {
+      background-color: #ff1a1a;
     }
   </style>
 </head>
@@ -53,44 +114,77 @@
   <div class="container">
     <!-- Login Form -->
     <div id="loginSection">
-      <h2>Login</h2>
-      <input type="text" id="loginUsername" placeholder="Username">
-      <input type="password" id="loginPassword" placeholder="Password">
+      <h2>Login to Chat</h2>
+      <input type="text" id="loginUsername" placeholder="Username" required>
+      <input type="password" id="loginPassword" placeholder="Password" required>
       <button onclick="login()">Login</button>
       <p id="loginError" style="color: red;"></p>
     </div>
 
-    <!-- User Dashboard -->
+    <!-- Chat Dashboard -->
     <div id="dashboard" class="hidden">
       <h2>Welcome, <span id="currentUser"></span></h2>
-      <button onclick="logout()">Logout</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
 
       <!-- User List -->
       <h3>Users</h3>
-      <div class="user-list" id="userList"></div>
+      <div id="userList" class="chat-container"></div>
 
-      <!-- Messaging Section -->
-      <h3>Send Message</h3>
-      <input type="text" id="receiverUsername" placeholder="Receiver Username">
-      <textarea id="messageContent" placeholder="Type your message"></textarea>
-      <button onclick="sendMessage()">Send Message</button>
-      <p id="messageError" style="color: red;"></p>
-
-      <!-- View Messages -->
-      <h3>Your Messages</h3>
-      <div class="messages" id="messageDisplay"></div>
+      <!-- Chat Section -->
+      <div id="chatSection" class="hidden">
+        <h3>Chat with <span id="receiverName"></span></h3>
+        <div class="chat-container" id="chatBox"></div>
+        <textarea id="chatInput" placeholder="Type your message" rows="3"></textarea>
+        <button onclick="sendMessage()">Send</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // Dummy user data
-    const users = {
-      mostakim: { password: "1234", messages: [], profile: { name: "Mostakim", phone: "123456789", picture: "" } },
+    // Dummy user data with additional details
+    let users = JSON.parse(localStorage.getItem('users')) || {
+      mostakim: { 
+        password: "1234", 
+        name: "Mostakim", 
+        email: "mostakim@example.com", 
+        phone: "123-456-7890", 
+        facebookId: "mostakim.fb", 
+        image: "https://via.placeholder.com/35", 
+        messages: {} 
+      },
+      bob: { 
+        password: "12345", 
+        name: "Bob", 
+        email: "bob@example.com", 
+        phone: "987-654-3210", 
+        facebookId: "bob.fb", 
+        image: "https://via.placeholder.com/35", 
+        messages: {} 
+      },
+      alice: { 
+        password: "alice123", 
+        name: "Alice", 
+        email: "alice@example.com", 
+        phone: "555-555-5555", 
+        facebookId: "alice.fb", 
+        image: "https://via.placeholder.com/35", 
+        messages: {} 
+      },
       
-      bob: { password: "12345", messages: [], profile: { name: "Bob", phone: "987654321", picture: "" } },
+      alice2: { 
+        password: "alice123", 
+        name: "Alice", 
+        email: "alice@example.com", 
+        phone: "555-555-5555", 
+        facebookId: "alice.fb", 
+        image: "https://via.placeholder.com/35", 
+        messages: {} 
+      },
+      // Add more users as needed
     };
 
     let currentUser = null;
+    let selectedUser = null;
 
     // Login Function
     function login() {
@@ -113,19 +207,20 @@
       errorElement.textContent = "";
       document.getElementById("loginSection").classList.add("hidden");
       document.getElementById("dashboard").classList.remove("hidden");
-      document.getElementById("currentUser").textContent = username;
+      document.getElementById("currentUser").textContent = users[username].name;
 
       loadUsers();
-      loadMessages();
     }
 
     // Logout Function
     function logout() {
       currentUser = null;
+      selectedUser = null;
       document.getElementById("loginSection").classList.remove("hidden");
       document.getElementById("dashboard").classList.add("hidden");
       document.getElementById("loginUsername").value = "";
       document.getElementById("loginPassword").value = "";
+      document.getElementById("chatSection").classList.add("hidden");
     }
 
     // Load Users List
@@ -134,52 +229,63 @@
       userList.innerHTML = "";
       Object.keys(users).forEach((username) => {
         if (username !== currentUser) {
-          userList.innerHTML += `<p>${username}</p>`;
+          userList.innerHTML += `
+            <p class="chat-message" onclick="startChat('${username}')">
+              <img src="${users[username].image}" alt="Profile Image">
+              <strong>${users[username].name}</strong>
+            </p>`;
         }
       });
     }
 
-    // Send Message
-    function sendMessage() {
-      const receiver = document.getElementById("receiverUsername").value;
-      const message = document.getElementById("messageContent").value;
-      const errorElement = document.getElementById("messageError");
-
-      if (!users[receiver]) {
-        errorElement.textContent = "Receiver not found!";
-        return;
-      }
-
-      if (!message) {
-        errorElement.textContent = "Message cannot be empty!";
-        return;
-      }
-
-      // Send message
-      users[receiver].messages.push({ sender: currentUser, content: message });
-      errorElement.textContent = "";
-      alert("Message sent!");
-
-      document.getElementById("receiverUsername").value = "";
-      document.getElementById("messageContent").value = "";
-
-      loadMessages();
+    // Start Chat with a User
+    function startChat(username) {
+      selectedUser = username;
+      document.getElementById("receiverName").textContent = users[username].name;
+      document.getElementById("chatSection").classList.remove("hidden");
+      loadChatMessages();
     }
 
-    // Load Messages
-    function loadMessages() {
-      const messageDisplay = document.getElementById("messageDisplay");
-      const userMessages = users[currentUser].messages;
-      messageDisplay.innerHTML = "";
+    // Send Message
+    function sendMessage() {
+      const message = document.getElementById("chatInput").value;
 
-      if (userMessages.length === 0) {
-        messageDisplay.innerHTML = "<p>No messages found!</p>";
-        return;
+      if (!message) return;
+
+      // Initialize message storage if not exists
+      if (!users[currentUser].messages[selectedUser]) {
+        users[currentUser].messages[selectedUser] = [];
+      }
+      if (!users[selectedUser].messages[currentUser]) {
+        users[selectedUser].messages[currentUser] = [];
       }
 
-      userMessages.forEach((msg) => {
-        messageDisplay.innerHTML += `<p><strong>${msg.sender}:</strong> ${msg.content}</p>`;
+      // Save messages for both sender and receiver
+      users[currentUser].messages[selectedUser].push({ sender: currentUser, content: message });
+      users[selectedUser].messages[currentUser].push({ sender: currentUser, content: message });
+
+      // Save updated users data in localStorage
+      localStorage.setItem('users', JSON.stringify(users));
+
+      document.getElementById("chatInput").value = "";
+      loadChatMessages();
+    }
+
+    // Load Chat Messages
+    function loadChatMessages() {
+      const chatBox = document.getElementById("chatBox");
+      chatBox.innerHTML = "";
+
+      const messages = users[currentUser].messages[selectedUser] || [];
+      messages.forEach((msg) => {
+        let messageClass = (msg.sender === currentUser) ? "sender" : "receiver";
+        chatBox.innerHTML += `
+          <div class="chat-message-container">
+            <p class="${messageClass}"><strong>${msg.sender}:</strong> ${msg.content}</p>
+          </div>`;
       });
+
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
   </script>
 </body>
