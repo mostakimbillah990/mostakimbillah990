@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>লিস্ট পেজ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .list-container {
+            width: 60%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-container ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .list-container li {
+            padding: 15px;
+            background-color: #efefef;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .list-container li:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>লিস্ট আইটেমসমূহ</h1>
+    <div class="list-container">
+        <ul>
+            <li onclick="window.location.href='page1.html';">ইউসার ইনফরমেশন</li>
+            <li onclick="window.location.href='page2.html';">ডোনার ইনফরমেশন</li>
+            <li onclick="window.location.href='page3.html';">হাসপাতাল</li>
+            <li onclick="window.location.href='page4.html';">ডক্টর</li>
+            <li onclick="window.location.href='page5.html';">ধর্ষনীয় ইস্থান</li>
+            <li onclick="window.location.href='page6.html';">বাসা ভাড়া</li>
+        </ul>
+    </div>
+</body>
+</html>
